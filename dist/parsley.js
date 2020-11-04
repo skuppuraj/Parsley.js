@@ -317,6 +317,10 @@
     // Key events threshold before validation
     validationThreshold: 3,
     // Focused field on form validation error. 'first'|'last'|'none'
+    trimCharacter: '',
+    //
+    startingPattern: '',
+    // Focused field on form validation error. 'first'|'last'|'none'
     focus: 'first',
     // event(s) that will trigger validation before first failure. eg: `input`...
     trigger: false,
@@ -1183,7 +1187,22 @@
       // For keyup, keypress, keydown, input... events that could be a little bit obstrusive
       // do not validate if val length < min threshold on first validation. Once field have been validated once and info
       // about success or failure have been displayed, always validate with this trigger to reflect every yalidation change.
-      if (event && /key|input/.test(event.type)) if (!(this._ui && this._ui.validationInformationVisible) && this.getValue().length <= this.options.validationThreshold) return;
+      if (event && /key|input/.test(event.type)){
+          if (!(this._ui && this._ui.validationInformationVisible) && (this.getValue().replace(new RegExp(this.options.validationTrimcharacter, 'gi'), '').length <= this.options.validationThreshold)) return;
+          if (!(this._ui && this._ui.validationInformationVisible) && (typeof this.options.validateStartingPattern != 'undefined' && this.options.validateStartingPattern)) {
+            let regExp = this.options.validateStartingPattern;
+            let patt = new RegExp(regExp);
+            if (!patt.test(this.getValue())) {
+              return
+            }
+          }
+          if (!(this._ui && this._ui.validationInformationVisible) && (typeof this.options.validateMultiWord != 'undefined' && this.options.validateMultiWord)) {
+            let split = this.getValue().trim().split(" ");
+             if ( split.length <=1 ) {
+               return
+             }
+          }
+      } 
 
       if (this.options.debounce) {
         window.clearTimeout(this._debounced);
@@ -2354,7 +2373,7 @@
       }, remoteOptions); // Generate store key based on ajax options
 
       instance.trigger('field:ajaxoptions', instance, ajaxOptions);
-      csr = $.param(ajaxOptions); // Initialise query cache
+      csr = $.param(ajaxOptions); // Initialise querry cache
 
       if ('undefined' === typeof Parsley._remoteCache) Parsley._remoteCache = {}; // Try to retrieve stored xhr
 
